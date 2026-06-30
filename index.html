@@ -4,33 +4,108 @@
   <!--
     If you are serving your web app in a path other than the root, change the
     href value below to reflect the base path you are serving from.
-
     The path provided below has to start and end with a slash "/" in order for
     it to work correctly.
-
     For more details:
     * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
     This is a placeholder for base href that will be replaced by the value of
     the `--base-href` argument provided to `flutter build`.
   -->
   <base href="/">
-
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="A new Flutter project.">
-
   <!-- iOS meta tags & icons -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="portfolio">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
-
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
-
   <title>portfolio</title>
   <link rel="manifest" href="manifest.json">
+
+  <style>
+    /* ── Splash screen (shown until Flutter takes over) ── */
+    html, body {
+      margin: 0;
+      height: 100%;
+      background: #0F1F1C;
+    }
+    #app-splash {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 22px;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(45,191,160,.18), transparent 45%),
+        radial-gradient(circle at 80% 75%, rgba(74,157,199,.14), transparent 45%),
+        #0F1F1C;
+      font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif;
+      transition: opacity .5s ease, visibility .5s ease;
+    }
+    #app-splash.hide {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+    .splash-mark {
+      width: 64px;
+      height: 64px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #12977A, #2DBFA0);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 30px rgba(18,151,122,.35);
+      animation: splash-float 2.6s ease-in-out infinite;
+    }
+    .splash-mark svg { width: 30px; height: 30px; }
+    @keyframes splash-float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+    .splash-title {
+      color: #fff;
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: .3px;
+      opacity: .92;
+    }
+    .splash-ring {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      border: 2.5px solid rgba(255,255,255,.15);
+      border-top-color: #2DBFA0;
+      animation: splash-spin .9s linear infinite;
+    }
+    @keyframes splash-spin {
+      to { transform: rotate(360deg); }
+    }
+    .splash-bar-track {
+      width: 160px;
+      height: 3px;
+      border-radius: 3px;
+      background: rgba(255,255,255,.12);
+      overflow: hidden;
+    }
+    .splash-bar-fill {
+      height: 100%;
+      width: 40%;
+      border-radius: 3px;
+      background: linear-gradient(90deg, #12977A, #2DBFA0, #D9A441);
+      animation: splash-bar 1.3s ease-in-out infinite;
+    }
+    @keyframes splash-bar {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(250%); }
+    }
+  </style>
 
   <script>
     // The value below is injected by flutter build, do not touch.
@@ -40,7 +115,28 @@
   <script src="flutter.js" defer></script>
 </head>
 <body>
+
+  <!-- Branded loading splash, removed automatically once the app renders -->
+  <div id="app-splash">
+    <div class="splash-mark">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2L3 7v10l9 5 9-5V7l-9-5z" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/>
+        <path d="M12 22V12M12 12L3 7M12 12l9-5" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div class="splash-title">Loading portfolio…</div>
+    <div class="splash-ring"></div>
+    <div class="splash-bar-track"><div class="splash-bar-fill"></div></div>
+  </div>
+
   <script>
+    function removeSplash() {
+      const splash = document.getElementById('app-splash');
+      if (!splash) return;
+      splash.classList.add('hide');
+      setTimeout(() => splash.remove(), 600);
+    }
+
     window.addEventListener('load', function(ev) {
       // Download main.dart.js
       _flutter.loader.loadEntrypoint({
@@ -50,10 +146,16 @@
         onEntrypointLoaded: function(engineInitializer) {
           engineInitializer.initializeEngine().then(function(appRunner) {
             appRunner.runApp();
+            // Give Flutter a beat to paint its first frame, then fade the splash.
+            setTimeout(removeSplash, 300);
           });
         }
       });
     });
+
+    // Safety net: if something goes wrong and the app never signals ready,
+    // don't leave the user staring at a splash forever.
+    setTimeout(removeSplash, 12000);
   </script>
 </body>
 </html>
